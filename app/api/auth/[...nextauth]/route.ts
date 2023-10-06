@@ -1,31 +1,39 @@
-import { authenticate } from "@/services/authService"
 import NextAuth from "next-auth"
 import type { AuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import EmailProvider from "next-auth/providers/email";
+import prisma from "@/utils/prisa";
+
+const prismaClient = prisma();
 
 export const authOptions: AuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: 'Credentials',
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize (credentials, _req) {
-        if (typeof credentials !== "undefined") {
-          const res = await authenticate(credentials.email, credentials.password)
-          if (typeof res !== "undefined") {
-            return { ...res.user, apiToken: res.token }
-          } else {
-            return null
-          }
-        } else {
-          return null
-        }
-      }
-    })
-  ],
-  session: { strategy: "jwt" }
+    adapter: PrismaAdapter(prismaClient),
+    providers: [
+        EmailProvider({
+            server: {
+                host: process.env.EMAIL_SERVER_HOST,
+                port: process.env.EMAIL_SERVER_PORT,
+                auth: {
+                    user: process.env.EMAIL_SERVER_USER,
+                    pass: process.env.EMAIL_SERVER_PASSWORD
+                }
+            },
+            from: process.env.EMAIL_FROM
+        }),
+    ],
+    session: { strategy: "jwt" },
+    callbacks: {
+        async signIn({ user }) { 
+            const userExists = await prisma.user.findUnique({ 
+                where: { email: user.email }
+            });
+            if (userExists) {
+                return true;   
+            } else {
+                return "/public/register"; 
+            }
+        },
+    },
 }
 
 const handler = NextAuth(authOptions)
