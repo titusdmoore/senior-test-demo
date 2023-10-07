@@ -10,6 +10,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Task {
+  id         String         @id @default(cuid())
+  title      String         @db.Text
+  content    String         @db.Text
+  status     TaskStatus     @default(ACTIVE)
+  startAt    DateTime       @default(now())
+  endAt      DateTime?      @default(now())
+  assignees  User[]
+  categories TaskCategory[]
+}
+
+model TaskCategory {
+  id    String @id @default(cuid())
+  name  String
+  tasks Task[]
+}
+
+enum TaskStatus {
+  ACTIVE
+  BACKLOG
+  INPROGRESS
+  COMPLETED
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -45,6 +69,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  tasks         Task[]
 }
 
 model VerificationToken {

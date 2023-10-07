@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
     session: { strategy: "jwt" },
     callbacks: {
         async signIn({ user }) { 
-            const userExists = await prisma.user.findUnique({ 
+            const userExists = await prismaClient.user.findUnique({ 
                 where: { email: user.email }
             });
             if (userExists) {
