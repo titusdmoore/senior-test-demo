@@ -15,6 +15,32 @@ type FormValues = {
   asignees: any[];
 };
 
-export default function NewTaskForm() {
+const resolver: Resolver<FormValues> = async (values: any) => {
+  return {
+    values: values.title ? values : {},
+    errors: !values.title
+      ? {
+          title: {
+            type: "required",
+            message: "Title is required.",
+          },
+        }
+      : {},
+  }
+}
 
+export default function NewTaskForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormValues>({ resolver })
+
+  const onSubmit = handleSubmit(async (data) => {
+  });
+
+  return (
+    <form onSubmit={onSubmit}>
+    </form>
+  );
 }
