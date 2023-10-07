@@ -2,10 +2,19 @@ import { getSession } from '@/utils/session';
 import Image from 'next/image'
 import Link from 'next/link';
 import pageTitle from '@/utils/pageTitle';
+import prisma from '@/utils/prisa';
+
+const prismaClient = prisma();
+
+async function getData() {
+  let tasks = await prismaClient.task.findMany();
+
+  return tasks;
+}
 
 export default async function Home() {
   pageTitle.set('Dashboard');
-  console.log(pageTitle.get())
+  let tasks = await getData();
 
   return (
     <main className="flex min-h-screen w-full h-full flex-col">
@@ -13,6 +22,13 @@ export default async function Home() {
         <div className="card col-span-3 bg-white h-96 text-base-200 shadow-xl">
           <div className="card-body">
             <h2 className="card-title">My Tasks</h2>
+            { 
+              tasks.map((task: any) => (
+                <div key={task.id} className="flex items-center justify-between">
+                  {task.title}
+                </div>
+              ))
+            }
           </div>
         </div>
         <div className="card col-span-2 text-base-200 bg-white h-80 shadow-xl">
